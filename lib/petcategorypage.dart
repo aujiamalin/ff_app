@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORT FIRESTORE
 import 'main.dart';
 
 class PetCategoryPage extends StatelessWidget {
@@ -8,76 +9,7 @@ class PetCategoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, List<Map<String, dynamic>>> allPetProducts = {
-      'Dog': [
-        {
-          'title': 'Premium Dog Food',
-          'rating': '4.8',
-          'reviews': '(234)',
-          'description': 'High-quality nutrition for your furry friend with real chicken and vegetables.',
-          'price': '45.99',
-        },
-        {
-          'title': 'Dog Chew Toys Set',
-          'rating': '4.7',
-          'reviews': '(445)',
-          'description': 'Durable rubber toys for aggressive chewers, set of 5.',
-          'price': '19.99',
-        },
-        {
-          'title': 'Dog Leash & Collar Set',
-          'rating': '4.6',
-          'reviews': '(334)',
-          'description': 'Stylish and durable nylon leash with matching collar.',
-          'price': '24.99',
-        },
-      ],
-      'Cat': [
-        {
-          'title': 'Premium Cat Salmon Kibbles',
-          'rating': '4.9',
-          'reviews': '(512)',
-          'description': 'Rich in Omega-3 for shiny fur and healthy growth.',
-          'price': '39.99',
-        },
-        {
-          'title': 'Interactive Cat Feather Toy',
-          'rating': '4.5',
-          'reviews': '(180)',
-          'description': 'Keep your cat active and entertained for hours.',
-          'price': '8.50',
-        },
-      ],
-      'Fish': [
-        {
-          'title': 'Tropical Fish Flakes Food',
-          'rating': '4.4',
-          'reviews': '(98)',
-          'description': 'Nutritious flakes that promote vibrant colors for your fish.',
-          'price': '12.00',
-        },
-      ],
-      'Bird': [
-        {
-          'title': 'Natural Organic Seed Mix',
-          'rating': '4.7',
-          'reviews': '(120)',
-          'description': 'Perfect blend of seeds and grains for your pet birds.',
-          'price': '15.99',
-        },
-      ],
-      'Small Pets': [
-        {
-          'title': 'Premium Alfalfa Hay 1kg',
-          'rating': '4.8',
-          'reviews': '(340)',
-          'description': 'High fiber organic hay, essential for rabbit digestion.',
-          'price': '22.50',
-        },
-      ],
-    };
-
-    final List<Map<String, dynamic>> products = allPetProducts[categoryName] ?? [];
+    // Data statik allPetProducts yang panjang sebelum ini telah dibuang sepenuhnya
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -104,115 +36,178 @@ class PetCategoryPage extends StatelessWidget {
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
       ),
-      body: products.isEmpty
-          ? const Center(child: Text('No products available for this pet.'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.pets, color: Color(0xFF94A3B8), size: 40),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product['title']!,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF1E293B),
+      // 2. GUNAKAN STREAMBUILDER DENGAN FILTER TERTENTU (.where)
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('products')
+            .where('category', isEqualTo: categoryName) // Tapis ikut kategori secara automatik
+            .snapshots(),
+        builder: (context, snapshot) {
+          // Masa tunggu pangkalan data loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF9800)),
+            );
+          }
+
+          // Jika ada kesilapan teknikal
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong!'));
+          }
+
+          // Jika kategori ini tiada produk lagi di Firebase Console
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No products available for this pet.',
+                style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+              ),
+            );
+          }
+
+          // Ambil dokumen dari Firebase
+          final products = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              // Tukar setiap dokumen kepada map data
+              final product = products[index].data() as Map<String, dynamic>;
+
+              final String title = product['name'] ?? 'No Title';
+              final double rating = (product['rating'] ?? 5.0).toDouble();
+              final int reviews = product['reviews'] ?? 0;
+              final String description = product['description'] ?? 'No description available.';
+              final double price = (product['price'] ?? 0.0).toDouble();
+              final String imageUrl = product['image'] ?? '';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: imageUrl.isNotEmpty
+                          ? Image.network(
+                              imageUrl,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 100,
+                                  height: 100,
+                                  color: const Color(0xFFF1F5F9),
+                                  child: const Icon(Icons.pets, color: Color(0xFF94A3B8), size: 40),
+                                );
+                              },
+                            )
+                          : Container(
+                              width: 100,
+                              height: 100,
+                              color: const Color(0xFFF1F5F9),
+                              child: const Icon(Icons.pets, color: Color(0xFF94A3B8), size: 40),
+                            ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$rating',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1E293B),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.star, color: Colors.amber, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  product['rating']!,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1E293B),
-                                  ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '($reviews)',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  product['reviews']!,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              product['description']!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                                height: 1.3,
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              height: 1.3,
                             ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '\$${product['price']!}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFFFF9800),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '\$${price.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFFF9800),
+                                ),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF9800),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFFF9800),
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {},
-                                  child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                                onPressed: () {},
+                                child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
