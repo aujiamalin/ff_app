@@ -1,28 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
 import 'main.dart';
+import 'product_data.dart';
 
 const Color primaryOrange = Color(0xFFFF9800);
 const Color darkSlateText = Color(0xFF1E293B);
 
-class ProductItem {
-  final String id;
-  final String name;
-  final double price;
-  final double rating;
-  final int reviews;
-  final String description;
-  final String image;
 
-  const ProductItem({
-    required this.id, 
-    required this.name, 
-    required this.price, 
-    required this.rating, 
-    required this.reviews, 
-    required this.description,
-    required this.image,
-  });
-}
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -32,44 +17,20 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  final List<ProductItem> allProducts = const [
-    ProductItem(
-      id: '1', 
-      name: 'Premium Dog Food', 
-      price: 45.99, 
-      rating: 4.8, 
-      reviews: 234, 
-      description: 'High-quality nutrition for your furry friend with real chicken and vegetables.',
-      image: 'https://images.unsplash.com/photo-1589924691126-022f12796414?w=400&q=80',
-    ),
-    ProductItem(
-      id: '2', 
-      name: 'Cat Scratching Post', 
-      price: 29.99, 
-      rating: 4.6, 
-      reviews: 189, 
-      description: 'Durable sisal rope post to keep your cat entertained and save your furniture.',
-      image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=400&q=80',
-    ),
-    ProductItem(
-      id: '3', 
-      name: 'Bird Cage Deluxe', 
-      price: 89.99, 
-      rating: 4.7, 
-      reviews: 142, 
-      description: 'Spacious cage with multiple perches and feeding stations for happy birds.',
-      image: 'https://images.unsplash.com/photo-1607990283143-e81e7a2c93ab?w=400&q=80',
-    ),
-    ProductItem(
-      id: '4', 
-      name: 'Aquarium Starter Kit', 
-      price: 129.99, 
-      rating: 4.9, 
-      reviews: 312, 
-      description: 'Complete 20-gallon setup with filter, heater, and LED lighting.',
-      image: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=400&q=80',
-    ),
-  ];
+
+  void _addToCart(BuildContext context, ProductItem product) {
+    // Sends the item to the provider
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+    
+    // Shows the green success pop-up
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart! 🛒'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +167,7 @@ class _ShopPageState extends State<ShopPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ), 
                               ),
-                              onPressed: () {},
+                              onPressed: () => _addToCart(context, product),
                               child: const Text(
                                 'Add', 
                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
@@ -214,7 +175,7 @@ class _ShopPageState extends State<ShopPage> {
                             ),
                           ],
                         ),
-                      ],
+                      ],  
                     ),
                   ),
                 ],

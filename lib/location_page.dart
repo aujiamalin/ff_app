@@ -1,101 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class LocationPage extends StatelessWidget {
   const LocationPage({super.key});
-  Future<void> openGoogleMaps() async {
-  final Uri url = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=1.852276,103.074121');
-
-  if (await canLaunchUrl(url)) {
-    await launchUrl(url);
-  }
-}
 
   @override
   Widget build(BuildContext context) {
-
-    const LatLng storeLocation =
-        LatLng(1.852276, 103.074121);
+    // Exact store coordinates for Taman Universiti / Pura Kencana area
+    const LatLng storeLocation = LatLng(1.852276, 103.074121);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Store Location'),
+        title: const Text('Store Location', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
       body: Column(
-  children: [
-    Expanded(
-      child: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: storeLocation,
-          zoom: 15,
-        ),
-        markers: {
-          const Marker(
-            markerId: MarkerId('store'),
-            position: storeLocation,
-            infoWindow: InfoWindow(
-              title: 'FluffyFriend Pet Store',
-              snippet: 'Pura Kencana, Johor',
-            ),
-          ),
-        },
-      ),
-    ),
-
-    Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'FluffyFriend Pet Store',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: GoogleMap(
+              initialCameraPosition: const CameraPosition(
+                target: storeLocation,
+                zoom: 15,
+              ),
+              markers: {
+                const Marker(
+                  markerId: MarkerId('store'),
+                  position: storeLocation,
+                  infoWindow: InfoWindow(
+                    title: 'FluffyFriend Pet Store',
+                    snippet: 'Pura Kencana, Johor',
+                  ),
+                ),
+              },
             ),
           ),
-
-          SizedBox(height: 8),
-
-          Text(
-            'Address:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, -3),
+                ),
+              ],
             ),
-          ),
-
-          ElevatedButton.icon(
-            onPressed: openGoogleMaps,
-            icon: const Icon(Icons.map),
-  label: const Text('Open in Google Maps'),
-),
-
-          Text(
-            'Taman Universiti, Batu Pahat, Johor',
-          ),
-
-          SizedBox(height: 8),
-
-          Text(
-            'Operating Hours:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'FluffyFriend Pet Store',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Address:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+                Text('Taman Universiti, Pura Kencana, Batu Pahat, Johor'),
+                SizedBox(height: 12),
+                Text(
+                  'Operating Hours:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+                Text('Monday - Sunday: 9:00 AM - 8:00 PM'),
+              ],
             ),
-          ),
-
-          Text(
-            'Monday - Sunday: 9:00 AM - 8:00 PM',
           ),
         ],
       ),
-    ),
-  ],
-),
-
-      
     );
   }
 }

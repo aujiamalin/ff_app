@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
 import 'homepage.dart';
 import 'shoppage.dart';
 import 'subscriptionpage.dart';
 import 'petcategorypage.dart';
+import 'about_us_page.dart';
+import 'location_page.dart';  
+import 'cart_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  Stripe.publishableKey = 'pk_test_51SpAeAA7ZCTbcmpDYhNZiZm4hvwfG01Asa7Pzzeu2DYGRWIskMw2tZPdFRQlAjV9DpECg2ak3pCOXAHJfnxKuU9200ru9kIGix';
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CartProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -65,7 +77,7 @@ class _MainLayoutState extends State<MainLayout> {
     final List<Widget> _screens = [
       const HomePage(),
       const ShopPage(),
-      const Center(child: Text('Cart Screen')),
+      const CartPage(),
       const Center(child: Text('Profile Screen')),
       const SubscriptionPage(),
       PetCategoryPage(categoryName: _activeCategory),

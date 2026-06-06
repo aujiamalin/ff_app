@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
 import 'main.dart';
+import 'about_us_page.dart';
+import 'product_data.dart';
 
 // 1. Color Palette Definitions
 const Color primaryOrange = Color(0xFFFF9800);
@@ -51,23 +55,7 @@ class CategoryItem {
   });
 }
 
-class ProductItem {
-  final String id;
-  final String name;
-  final double price;
-  final double rating;
-  final int reviews;
-  final String image; 
 
-  const ProductItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.rating,
-    required this.reviews,
-    required this.image,
-  });
-}
 
 const List<CategoryItem> categories = [
   CategoryItem(
@@ -102,52 +90,24 @@ const List<CategoryItem> categories = [
   ),
 ];
 
-const List<ProductItem> products = [
-  ProductItem(
-    id: '1',
-    name: 'Cat Scratching Post',
-    price: 29.99,
-    rating: 4.6,
-    reviews: 189,
-    image:
-        'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=400&q=80',
-  ),
-  ProductItem(
-    id: '2',
-    name: 'Aquarium Starter Kit',
-    price: 129.99,
-    rating: 4.9,
-    reviews: 312,
-    image:
-        'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=400&q=80',
-  ),
-  ProductItem(
-    id: '3',
-    name: 'Hamster Habitat',
-    price: 39.99,
-    rating: 4.5,
-    reviews: 98,
-    image:
-        'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=400&q=80',
-  ),
-  ProductItem(
-    id: '4',
-    name: 'Dog Chew Toys Set',
-    price: 19.99,
-    rating: 4.7,
-    reviews: 445,
-    image:
-        'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&q=80',
-  ),
-];
+
 
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   // Cart action handler simulation
-  void _addToCart(ProductItem product) {
-    print('Added to cart: ${product.name}');
+  void _addToCart(BuildContext context, ProductItem product) {
+    // Tells the provider to add the item
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+  
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart! 🛒'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   // Routing and navigation simulation
@@ -157,7 +117,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featuredProducts = products.take(6).toList();
+    final featuredProducts = allProducts.take(5).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -171,7 +131,7 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeaderBar(),
+                _buildHeaderBar(context),
                 const SizedBox(height: 20),
                 _buildWelcomeGradientBox(),
                 const SizedBox(height: 24),
@@ -196,27 +156,22 @@ class HomePage extends StatelessWidget {
   }
 
 
-  Widget _buildHeaderBar() {
+  Widget _buildHeaderBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(
-                16,
-              ), 
+              borderRadius: BorderRadius.circular(16), 
               child: Image.asset(
                 'assets/logo.png', 
                 width: 65, 
                 height: 65,
-                fit: BoxFit
-                    .contain, 
+                fit: BoxFit.contain, 
               ),
             ),
-            const SizedBox(
-              width: 12,
-            ),
+            const SizedBox(width: 12),
             const Text(
               'Fluffy Friend',
               style: TextStyle(
@@ -229,18 +184,81 @@ class HomePage extends StatelessWidget {
           ],
         ),
   
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Icon(
-            Icons.notifications_none_outlined,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
+        // 👇 REPLACED THE SINGLE ICON WITH A ROW OF TWO ICONS
+        Row(
+          children: [
+            // 1. Live Cart Icon
+            GestureDetector(
+              onTap: () => MainLayout.changeTab(context, 2), // Changes bottom nav to Cart Tab
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.grey.shade800,
+                      size: 22,
+                    ),
+                  ),
+                  // The Live Badge counter!
+                  Consumer<CartProvider>(
+                    builder: (context, cart, child) {
+                      if (cart.items.isEmpty) return const SizedBox.shrink(); // Hide if empty
+                      return Positioned(
+                        right: 0, // Brought safely inside the boundary
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18, // Forces it to be visible
+                            minHeight: 18,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${cart.items.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                height: 1, // Fixes weird text centering on web
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            
+            // 2. Existing Notification Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Icon(
+                Icons.notifications_none_outlined,
+                color: Colors.grey.shade800,
+                size: 22,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -324,6 +342,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
       childAspectRatio: 1.50,
       children: [
         _buildActionCard(
@@ -352,6 +371,15 @@ Widget _buildQuickActionGrid(BuildContext context) {
           const Color(0xFFD97706),
           '',
         ),
+
+        _buildActionCard(
+          context,
+          'About Us',
+          Icons.info_outline_rounded,
+          const Color(0xFFF3E8FF), // Soft purple background
+          const Color(0xFF9333EA), // Deep purple icon
+          'about', // The route keyword we will listen for
+        ),
       ],
     );
   }
@@ -374,6 +402,12 @@ Widget _buildQuickActionGrid(BuildContext context) {
         onTap: () {
           if (route == 'subscription') {
             MainLayout.changeTab(context, 4);
+          } else if (route == 'about') {
+            // 👇 ADDED THIS CONDITION TO OPEN YOUR PAGE
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutUsPage()),
+            );
           } else if (route.isNotEmpty) {
             _navigate(context, route);
           }
@@ -596,7 +630,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () => _addToCart(product),
+                            onPressed: () => _addToCart(context, product),
                             child: const Text(
                               'Add',
                               style: TextStyle(
