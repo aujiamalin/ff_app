@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. Color Palette Definitions
 const Color primaryOrange = Color(0xFFFF9800);
@@ -500,119 +501,146 @@ Widget _buildQuickActionGrid(BuildContext context) {
   }
 
   Widget _buildProductListView(
-    List<ProductItem> featuredProducts,
+    List<ProductItem> dummyProducts,
     BuildContext context,
   ) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: featuredProducts.length,
-      itemBuilder: (context, index) {
-        final product = featuredProducts[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(
-                  0xFF0F172A,
-                ).withOpacity(0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-            border: Border.all(color: const Color(0xFFF1F5F9)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _navigate(context, '/product/${product.id}'),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      product.image,
-                      width: 90,
-                      height: 90,
-                      fit: BoxFit.cover,
-                    ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').limit(4).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: primaryOrange));
+        }
+
+        final docItems = snapshot.data?.docs ?? [];
+
+        if (docItems.isEmpty) {
+          return const Center(child: Text('No featured products available.'));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docItems.length,
+          itemBuilder: (context, index) {
+            final doc = docItems[index];
+            final data = doc.data() as Map<String, dynamic>;
+
+            final String id = doc.id;
+            final String name = data['name'] ?? 'No Name';
+            final double price = (data['price'] ?? 0.0).toDouble();
+            final double rating = (data['rating'] ?? 5.0).toDouble();
+            final int reviews = data['reviews'] ?? 0;
+            final String image = data['image'] ?? 'https://via.placeholder.com/150';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withOpacity(0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () =>
-                            _navigate(context, '/product/${product.id}'),
-                        child: Text(
-                          product.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: productNameStyle,
+                ],
+                border: Border.all(color: const Color(0xFFF1F5F9)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _navigate(context, '/product/$id'),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          image,
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.star,
-                            color: Color(0xFFFFB800),
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${product.rating}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () => _navigate(context, '/product/$id'),
+                            child: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: productNameStyle,
                             ),
                           ),
-                          Text(
-                            ' (${product.reviews})',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Color(0xFFFFB800),
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$rating',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                ' ($reviews)',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('\$$price', style: priceTextStyle),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryOrange,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  minimumSize: const Size(64, 34),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  print('Added to cart: $name');
+                                },
+                                child: const Text(
+                                  'Add',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('\$${product.price}', style: priceTextStyle),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryOrange,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              minimumSize: const Size(64, 34),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () => _addToCart(product),
-                            child: const Text(
-                              'Add',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
