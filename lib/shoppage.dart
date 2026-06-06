@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'cart_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORT FIRESTORE
 import 'main.dart';
 import 'product_data.dart';
 
@@ -8,6 +9,30 @@ const Color primaryOrange = Color(0xFFFF9800);
 const Color darkSlateText = Color(0xFF1E293B);
 
 
+  const ProductItem({
+    required this.id, 
+    required this.name, 
+    required this.price, 
+    required this.rating, 
+    required this.reviews, 
+    required this.description,
+    required this.image,
+  });
+
+  // 2. TAMBAH FUNGSI UNTUK TUKAR DATA FIREBASE KEPADA OBJECT FLUTTER
+  factory ProductItem.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return ProductItem(
+      id: doc.id,
+      name: data['name'] ?? 'No Name',
+      price: (data['price'] ?? 0.0).toDouble(),
+      rating: (data['rating'] ?? 5.0).toDouble(),
+      reviews: data['reviews'] ?? 0,
+      description: data['description'] ?? 'No description available.',
+      image: data['image'] ?? 'https://via.placeholder.com/150',
+    );
+  }
+}
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -63,97 +88,106 @@ class _ShopPageState extends State<ShopPage> {
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: allProducts.length,
-        itemBuilder: (context, index) {
-          final product = allProducts[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24), 
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0F172A).withOpacity(0.03), 
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16), 
-                    child: Image.network(
-                      product.image, 
-                      width: 100, 
-                      height: 100, 
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 100,
-                          height: 100,
-                          color: const Color(0xFFF1F5F9),
-                          child: const Icon(Icons.image, color: Colors.grey),
-                        );
-                      },
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: primaryOrange),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong!'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No products available.'));
+          }
+
+          final products = snapshot.data!.docs
+              .map((doc) => ProductItem.fromFirestore(doc))
+              .toList();
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24), 
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withOpacity(0.03), 
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name, 
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800, 
-                            fontSize: 16,
-                            color: darkSlateText,
-                            letterSpacing: -0.3,
-                          ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16), 
+                        child: Image.network(
+                          product.image, 
+                          width: 100, 
+                          height: 100, 
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: const Color(0xFFF1F5F9),
+                              child: const Icon(Icons.image, color: Colors.grey),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.star, color: Color(0xFFFFB800), size: 15),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${product.rating}', 
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkSlateText),
-                            ),
-                            Text(
-                              ' (${product.reviews})', 
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          product.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '\$${product.price}', 
+                              product.name, 
                               style: const TextStyle(
-                                fontSize: 18, 
-                                fontWeight: FontWeight.w900, 
-                                color: primaryOrange,
+                                fontWeight: FontWeight.w800, 
+                                fontSize: 16,
+                                color: darkSlateText,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, color: Color(0xFFFFB800), size: 15),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${product.rating}', 
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkSlateText),
+                                ),
+                                Text(
+                                  ' (${product.reviews})', 
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              product.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                                height: 1.4,
                               ),
                             ),
                             ElevatedButton(
@@ -178,9 +212,9 @@ class _ShopPageState extends State<ShopPage> {
                       ],  
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),

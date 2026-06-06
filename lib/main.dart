@@ -9,9 +9,17 @@ import 'petcategorypage.dart';
 import 'about_us_page.dart';
 import 'location_page.dart';  
 import 'cart_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async{
   Stripe.publishableKey = 'pk_test_51SpAeAA7ZCTbcmpDYhNZiZm4hvwfG01Asa7Pzzeu2DYGRWIskMw2tZPdFRQlAjV9DpECg2ak3pCOXAHJfnxKuU9200ru9kIGix';
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => CartProvider(),
