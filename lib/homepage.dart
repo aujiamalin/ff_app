@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
 import 'main.dart';
+import 'about_us_page.dart';
+import 'product_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. Color Palette Definitions
@@ -9,12 +13,12 @@ const Color communityBlueStart = Color(0xFF3B82F6);
 const Color communityBlueEnd = Color(0xFF06B6D4);
 const Color darkSlateText = Color(0xFF1E293B);
 
-// 2. Typography Styles 
+// 2. Typography Styles
 const TextStyle largeWelcomeTitleStyle = TextStyle(
   color: Colors.white,
   fontSize: 24,
   fontWeight: FontWeight.w800,
-  letterSpacing: -0.5, 
+  letterSpacing: -0.5,
 );
 
 const TextStyle sectionTitleStyle = TextStyle(
@@ -33,7 +37,7 @@ const TextStyle productNameStyle = TextStyle(
 
 const TextStyle priceTextStyle = TextStyle(
   fontSize: 18,
-  fontWeight: FontWeight.w900, 
+  fontWeight: FontWeight.w900,
   color: primaryOrange,
   letterSpacing: -0.2,
 );
@@ -41,7 +45,7 @@ const TextStyle priceTextStyle = TextStyle(
 class CategoryItem {
   final String id;
   final String name;
-  final String icon; 
+  final String icon;
   final Color color;
 
   const CategoryItem({
@@ -49,24 +53,6 @@ class CategoryItem {
     required this.name,
     required this.icon,
     required this.color,
-  });
-}
-
-class ProductItem {
-  final String id;
-  final String name;
-  final double price;
-  final double rating;
-  final int reviews;
-  final String image; 
-
-  const ProductItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.rating,
-    required this.reviews,
-    required this.image,
   });
 }
 
@@ -103,52 +89,21 @@ const List<CategoryItem> categories = [
   ),
 ];
 
-const List<ProductItem> products = [
-  ProductItem(
-    id: '1',
-    name: 'Cat Scratching Post',
-    price: 29.99,
-    rating: 4.6,
-    reviews: 189,
-    image:
-        'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=400&q=80',
-  ),
-  ProductItem(
-    id: '2',
-    name: 'Aquarium Starter Kit',
-    price: 129.99,
-    rating: 4.9,
-    reviews: 312,
-    image:
-        'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=400&q=80',
-  ),
-  ProductItem(
-    id: '3',
-    name: 'Hamster Habitat',
-    price: 39.99,
-    rating: 4.5,
-    reviews: 98,
-    image:
-        'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=400&q=80',
-  ),
-  ProductItem(
-    id: '4',
-    name: 'Dog Chew Toys Set',
-    price: 19.99,
-    rating: 4.7,
-    reviews: 445,
-    image:
-        'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&q=80',
-  ),
-];
-
-
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   // Cart action handler simulation
-  void _addToCart(ProductItem product) {
-    print('Added to cart: ${product.name}');
+  void _addToCart(BuildContext context, ProductItem product) {
+    // Tells the provider to add the item
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart! 🛒'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   // Routing and navigation simulation
@@ -158,7 +113,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featuredProducts = products.take(6).toList();
+    final featuredProducts = allProducts.take(5).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -172,7 +127,7 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeaderBar(),
+                _buildHeaderBar(context),
                 const SizedBox(height: 20),
                 _buildWelcomeGradientBox(),
                 const SizedBox(height: 24),
@@ -196,28 +151,22 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
-  Widget _buildHeaderBar() {
+  Widget _buildHeaderBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(
-                16,
-              ), 
+              borderRadius: BorderRadius.circular(16),
               child: Image.asset(
-                'assets/logo.png', 
-                width: 65, 
+                'assets/logo.png',
+                width: 65,
                 height: 65,
-                fit: BoxFit
-                    .contain, 
+                fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(
-              width: 12,
-            ),
+            const SizedBox(width: 12),
             const Text(
               'Fluffy Friend',
               style: TextStyle(
@@ -229,19 +178,86 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
-  
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Icon(
-            Icons.notifications_none_outlined,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
+
+        // 👇 REPLACED THE SINGLE ICON WITH A ROW OF TWO ICONS
+        Row(
+          children: [
+            // 1. Live Cart Icon
+            GestureDetector(
+              onTap: () => MainLayout.changeTab(
+                context,
+                2,
+              ), // Changes bottom nav to Cart Tab
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.grey.shade800,
+                      size: 22,
+                    ),
+                  ),
+                  // The Live Badge counter!
+                  Consumer<CartProvider>(
+                    builder: (context, cart, child) {
+                      if (cart.items.isEmpty)
+                        return const SizedBox.shrink(); // Hide if empty
+                      return Positioned(
+                        right: 0, // Brought safely inside the boundary
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18, // Forces it to be visible
+                            minHeight: 18,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${cart.items.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                height: 1, // Fixes weird text centering on web
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // 2. Existing Notification Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Icon(
+                Icons.notifications_none_outlined,
+                color: Colors.grey.shade800,
+                size: 22,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -252,9 +268,7 @@ class HomePage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+        borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
           colors: [primaryOrange, gradientOrangeEnd],
           begin: Alignment.topLeft,
@@ -264,10 +278,7 @@ class HomePage extends StatelessWidget {
           BoxShadow(
             color: primaryOrange.withOpacity(0.25),
             blurRadius: 20,
-            offset: const Offset(
-              0,
-              8,
-            ), 
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -319,12 +330,13 @@ class HomePage extends StatelessWidget {
     );
   }
 
-Widget _buildQuickActionGrid(BuildContext context) {
+  Widget _buildQuickActionGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
       childAspectRatio: 1.50,
       children: [
         _buildActionCard(
@@ -342,7 +354,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
           Icons.autorenew_rounded,
           const Color(0xFFEBF3FF),
           const Color(0xFF2563EB),
-          'subscription', 
+          'subscription',
         ),
 
         _buildActionCard(
@@ -352,6 +364,15 @@ Widget _buildQuickActionGrid(BuildContext context) {
           const Color(0xFFFFFBEA),
           const Color(0xFFD97706),
           '',
+        ),
+
+        _buildActionCard(
+          context,
+          'About Us',
+          Icons.info_outline_rounded,
+          const Color(0xFFF3E8FF), // Soft purple background
+          const Color(0xFF9333EA), // Deep purple icon
+          'about', // The route keyword we will listen for
         ),
       ],
     );
@@ -366,24 +387,27 @@ Widget _buildQuickActionGrid(BuildContext context) {
     String route,
   ) {
     return Material(
-      color: bgColor, 
+      color: bgColor,
       borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.antiAlias, 
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         splashColor: iconColor.withOpacity(0.12),
-        highlightColor: iconColor.withOpacity(0.05), 
+        highlightColor: iconColor.withOpacity(0.05),
         onTap: () {
           if (route == 'subscription') {
             MainLayout.changeTab(context, 4);
+          } else if (route == 'about') {
+            // 👇 ADDED THIS CONDITION TO OPEN YOUR PAGE
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutUsPage()),
+            );
           } else if (route.isNotEmpty) {
             _navigate(context, route);
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal: 4,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
@@ -409,7 +433,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
     );
   }
 
- Widget _buildCategoryListGrid(BuildContext context) {
+  Widget _buildCategoryListGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -439,10 +463,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
             decoration: BoxDecoration(
               color: category.color,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF0F172A).withOpacity(0.04),
@@ -505,14 +526,19 @@ Widget _buildQuickActionGrid(BuildContext context) {
     BuildContext context,
   ) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('products').limit(4).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .limit(4)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('Something went wrong'));
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: primaryOrange));
+          return const Center(
+            child: CircularProgressIndicator(color: primaryOrange),
+          );
         }
 
         final docItems = snapshot.data?.docs ?? [];
@@ -534,7 +560,8 @@ Widget _buildQuickActionGrid(BuildContext context) {
             final double price = (data['price'] ?? 0.0).toDouble();
             final double rating = (data['rating'] ?? 5.0).toDouble();
             final int reviews = data['reviews'] ?? 0;
-            final String image = data['image'] ?? 'https://via.placeholder.com/150';
+            final String image =
+                data['image'] ?? 'https://via.placeholder.com/150';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 14),
@@ -590,13 +617,6 @@ Widget _buildQuickActionGrid(BuildContext context) {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '$rating',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
                                 ' ($reviews)',
                                 style: const TextStyle(
                                   fontSize: 12,
@@ -621,7 +641,16 @@ Widget _buildQuickActionGrid(BuildContext context) {
                                   ),
                                 ),
                                 onPressed: () {
-                                  print('Added to cart: $name');
+                                  final product = ProductItem(
+                                    id: id,
+                                    name: name,
+                                    price: price,
+                                    rating: rating,
+                                    reviews: reviews,
+                                    description: '',
+                                    image: image,
+                                  );
+                                  _addToCart(context, product);
                                 },
                                 child: const Text(
                                   'Add',

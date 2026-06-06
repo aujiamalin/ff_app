@@ -1,43 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORT FIRESTORE
 import 'main.dart';
+import 'product_data.dart';
 
 const Color primaryOrange = Color(0xFFFF9800);
 const Color darkSlateText = Color(0xFF1E293B);
-
-class ProductItem {
-  final String id;
-  final String name;
-  final double price;
-  final double rating;
-  final int reviews;
-  final String description;
-  final String image;
-
-  const ProductItem({
-    required this.id, 
-    required this.name, 
-    required this.price, 
-    required this.rating, 
-    required this.reviews, 
-    required this.description,
-    required this.image,
-  });
-
-  // 2. TAMBAH FUNGSI UNTUK TUKAR DATA FIREBASE KEPADA OBJECT FLUTTER
-  factory ProductItem.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return ProductItem(
-      id: doc.id,
-      name: data['name'] ?? 'No Name',
-      price: (data['price'] ?? 0.0).toDouble(),
-      rating: (data['rating'] ?? 5.0).toDouble(),
-      reviews: data['reviews'] ?? 0,
-      description: data['description'] ?? 'No description available.',
-      image: data['image'] ?? 'https://via.placeholder.com/150',
-    );
-  }
-}
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -47,11 +16,24 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
+  void _addToCart(BuildContext context, ProductItem product) {
+    // Sends the item to the provider
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+
+    // Shows the green success pop-up
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart! 🛒'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), 
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -109,11 +91,11 @@ class _ShopPageState extends State<ShopPage> {
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24), 
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0F172A).withOpacity(0.03), 
+                      color: const Color(0xFF0F172A).withOpacity(0.03),
                       blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
@@ -125,18 +107,21 @@ class _ShopPageState extends State<ShopPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(16), 
+                        borderRadius: BorderRadius.circular(16),
                         child: Image.network(
-                          product.image, 
-                          width: 100, 
-                          height: 100, 
+                          product.image,
+                          width: 100,
+                          height: 100,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               width: 100,
                               height: 100,
                               color: const Color(0xFFF1F5F9),
-                              child: const Icon(Icons.image, color: Colors.grey),
+                              child: const Icon(
+                                Icons.image,
+                                color: Colors.grey,
+                              ),
                             );
                           },
                         ),
@@ -147,9 +132,9 @@ class _ShopPageState extends State<ShopPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              product.name, 
+                              product.name,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w800, 
+                                fontWeight: FontWeight.w800,
                                 fontSize: 16,
                                 color: darkSlateText,
                                 letterSpacing: -0.3,
@@ -158,15 +143,26 @@ class _ShopPageState extends State<ShopPage> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.star, color: Color(0xFFFFB800), size: 15),
+                                const Icon(
+                                  Icons.star,
+                                  color: Color(0xFFFFB800),
+                                  size: 15,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${product.rating}', 
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkSlateText),
+                                  '${product.rating}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: darkSlateText,
+                                  ),
                                 ),
                                 Text(
-                                  ' (${product.reviews})', 
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                  ' (${product.reviews})',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF64748B),
+                                  ),
                                 ),
                               ],
                             ),
@@ -181,36 +177,28 @@ class _ShopPageState extends State<ShopPage> {
                                 height: 1.4,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '\$${product.price.toStringAsFixed(2)}', 
-                                  style: const TextStyle(
-                                    fontSize: 18, 
-                                    fontWeight: FontWeight.w900, 
-                                    color: primaryOrange,
-                                  ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryOrange,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
                                 ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryOrange,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                                    minimumSize: const Size(70, 36),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ), 
-                                  ),
-                                  onPressed: () {},
-                                  child: const Text(
-                                    'Add', 
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-                                  ),
+                                minimumSize: const Size(70, 36),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ],
+                              ),
+                              onPressed: () => _addToCart(context, product),
+                              child: const Text(
+                                'Add',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ),
                           ],
                         ),
