@@ -8,11 +8,10 @@ import 'homepage.dart';
 import 'editprofilepage.dart';
 import 'myorderspage.dart';
 import 'mypetspage.dart';
-import 'rewardpointspage.dart';
 import 'subscriptionpage.dart';
-import 'membershipage.dart';
+// import 'membershipage.dart';
 import 'shoppage.dart';
-import 'cartpage.dart';
+import 'cart_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -93,9 +92,9 @@ class _ProfilePageState extends State<ProfilePage> {
       });
       await saveProfile();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
     }
   }
 
@@ -108,62 +107,8 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
         title: const Text(
           "Profile",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-      ),
-      // ✅ bottomNavigationBar correctly placed inside Scaffold
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
-            );
-          }
-          if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ShopPage()),
-            );
-          }
-          if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const CartPage()),
-            );
-          }
-          if (index == 3) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Shop',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
       ),
       // ✅ body is now just the SingleChildScrollView with no invalid params
       body: SingleChildScrollView(
@@ -188,7 +133,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       : null,
                 ),
                 child: profileImage == null
-                    ? const Icon(Icons.camera_alt, size: 45, color: Colors.white)
+                    ? const Icon(
+                        Icons.camera_alt,
+                        size: 45,
+                        color: Colors.white,
+                      )
                     : null,
               ),
             ),
@@ -266,17 +215,16 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
 
-            buildMenuTile(
-              icon: Icons.star_border,
-              title: "Reward Points",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RewardPointsPage()),
-                );
-              },
-            ),
-
+            // buildMenuTile(
+            //   icon: Icons.star_border,
+            //   title: "Reward Points",
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (_) => const SubscriptionPage()),
+            //     );
+            //   },
+            // ),
             buildMenuTile(
               icon: Icons.calendar_month,
               title: "Subscriptions",
@@ -288,17 +236,16 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
 
-            buildMenuTile(
-              icon: Icons.workspace_premium,
-              title: "Membership",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MembershipPage()),
-                );
-              },
-            ),
-
+            // buildMenuTile(
+            //   icon: Icons.workspace_premium,
+            //   title: "Membership",
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (_) => const MembershipPage()),
+            //     );
+            //   },
+            // ),
             const SizedBox(height: 25),
 
             Padding(

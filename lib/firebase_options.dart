@@ -51,11 +51,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCu0I8tw3CcmlunF6_9mkWetFpXBOOB6cg',
-    appId: '1:356146410774:android:5af51b7d5830a38d648c37',
-    messagingSenderId: '356146410774',
-    projectId: 'fluffy-friend-e7994',
-    storageBucket: 'fluffy-friend-e7994.firebasestorage.app',
+    apiKey: 'AIzaSyCTgOVUQ5r10lEcCs0MAXJMm6wIRkk_L-s',
+    appId: '1:160986468177:android:f3dfe2720132f44f5a4d70',
+    messagingSenderId: '160986468177',
+    projectId: 'fluffy-friend-1ba26',
+    storageBucket: 'fluffy-friend-1ba26.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

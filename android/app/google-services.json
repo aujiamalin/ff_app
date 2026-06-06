@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "356146410774",
-    "project_id": "fluffy-friend-e7994",
-    "storage_bucket": "fluffy-friend-e7994.firebasestorage.app"
+    "project_number": "160986468177",
+    "project_id": "fluffy-friend-1ba26",
+    "storage_bucket": "fluffy-friend-1ba26.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:356146410774:android:5af51b7d5830a38d648c37",
+        "mobilesdk_app_id": "1:160986468177:android:f3dfe2720132f44f5a4d70",
         "android_client_info": {
           "package_name": "com.example.ff_app"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCu0I8tw3CcmlunF6_9mkWetFpXBOOB6cg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:356146410774:android:239aabc81431ce8d648c37",
-        "android_client_info": {
-          "package_name": "com.example.fluffyfriend"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCu0I8tw3CcmlunF6_9mkWetFpXBOOB6cg"
+          "current_key": "AIzaSyCTgOVUQ5r10lEcCs0MAXJMm6wIRkk_L-s"
         }
       ],
       "services": {

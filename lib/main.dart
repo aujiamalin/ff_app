@@ -4,21 +4,21 @@ import 'package:provider/provider.dart';
 import 'cart_provider.dart';
 import 'homepage.dart';
 import 'shoppage.dart';
+import 'profilepage.dart';
 import 'subscriptionpage.dart';
 import 'petcategorypage.dart';
 import 'about_us_page.dart';
-import 'location_page.dart';  
+import 'location_page.dart';
 import 'cart_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-void main() async{
-  Stripe.publishableKey = 'pk_test_51SpAeAA7ZCTbcmpDYhNZiZm4hvwfG01Asa7Pzzeu2DYGRWIskMw2tZPdFRQlAjV9DpECg2ak3pCOXAHJfnxKuU9200ru9kIGix';
+void main() async {
+  Stripe.publishableKey =
+      'pk_test_51SpAeAA7ZCTbcmpDYhNZiZm4hvwfG01Asa7Pzzeu2DYGRWIskMw2tZPdFRQlAjV9DpECg2ak3pCOXAHJfnxKuU9200ru9kIGix';
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
     ChangeNotifierProvider(
@@ -51,7 +51,8 @@ class MainLayout extends StatefulWidget {
   const MainLayout({Key? key, this.initialIndex = 0}) : super(key: key);
 
   static void changeTab(BuildContext context, int index, {String? category}) {
-    final _MainLayoutState? state = context.findAncestorStateOfType<_MainLayoutState>();
+    final _MainLayoutState? state = context
+        .findAncestorStateOfType<_MainLayoutState>();
     if (state != null) {
       state.updateIndex(index, category: category);
     }
@@ -86,16 +87,13 @@ class _MainLayoutState extends State<MainLayout> {
       const HomePage(),
       const ShopPage(),
       const CartPage(),
-      const Center(child: Text('Profile Screen')),
+      const ProfilePage(),
       const SubscriptionPage(),
       PetCategoryPage(categoryName: _activeCategory),
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex > 3 ? 0 : _selectedIndex,
         selectedItemColor: const Color(0xFFFF9800),
@@ -109,8 +107,14 @@ class _MainLayoutState extends State<MainLayout> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Shop'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Shop',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Cart',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
