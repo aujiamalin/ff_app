@@ -1,0 +1,24 @@
+const { onCall } = require("firebase-functions/v2/https");
+const stripe = require("stripe")("sk_test_51SpAeAA7ZCTbcmpDGI67tZraOGqF02YcHFgiR22IE6gcolLdhqa9V5spC2CvydLZGxRFA9hQgPieXy5rUzmCq0bP00wQxrgCMy");
+
+exports.createPaymentIntent = onCall(async (request) => {
+  try {
+    // Firebase Callable functions automatically pass arguments inside request.data
+    const { amount, currency } = request.data;
+
+    console.log(`Creating payment intent for ${amount} ${currency}`);
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: parseInt(amount),
+      currency: currency || "MYR",
+      automatic_payment_methods: { enabled: true },
+    });
+
+    // Automatically returned as formatted JSON to Flutter
+    return { client_secret: paymentIntent.client_secret };
+
+  } catch (error) {
+    console.error("Stripe Error:", error.message);
+    return { error: error.message };
+  }
+});
