@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+C:\Users\USER\src\FFApp\ff_app\windows\flutter\generated_plugins.cmake
+C:\Users\USER\src\FFApp\ff_app\windows\flutter\generated_plugin_registrant.cc
+C:\Users\USER\src\FFApp\ff_app\macos\Flutter\GeneratedPluginRegistrant.swift
+C:\Users\USER\src\FFApp\ff_app\linux\flutter\generated_plugin_registrant.cc
