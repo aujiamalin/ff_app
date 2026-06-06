@@ -13,12 +13,12 @@ const Color communityBlueStart = Color(0xFF3B82F6);
 const Color communityBlueEnd = Color(0xFF06B6D4);
 const Color darkSlateText = Color(0xFF1E293B);
 
-// 2. Typography Styles 
+// 2. Typography Styles
 const TextStyle largeWelcomeTitleStyle = TextStyle(
   color: Colors.white,
   fontSize: 24,
   fontWeight: FontWeight.w800,
-  letterSpacing: -0.5, 
+  letterSpacing: -0.5,
 );
 
 const TextStyle sectionTitleStyle = TextStyle(
@@ -37,7 +37,7 @@ const TextStyle productNameStyle = TextStyle(
 
 const TextStyle priceTextStyle = TextStyle(
   fontSize: 18,
-  fontWeight: FontWeight.w900, 
+  fontWeight: FontWeight.w900,
   color: primaryOrange,
   letterSpacing: -0.2,
 );
@@ -45,7 +45,7 @@ const TextStyle priceTextStyle = TextStyle(
 class CategoryItem {
   final String id;
   final String name;
-  final String icon; 
+  final String icon;
   final Color color;
 
   const CategoryItem({
@@ -55,8 +55,6 @@ class CategoryItem {
     required this.color,
   });
 }
-
-
 
 const List<CategoryItem> categories = [
   CategoryItem(
@@ -91,9 +89,6 @@ const List<CategoryItem> categories = [
   ),
 ];
 
-
-
-
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -101,7 +96,7 @@ class HomePage extends StatelessWidget {
   void _addToCart(BuildContext context, ProductItem product) {
     // Tells the provider to add the item
     Provider.of<CartProvider>(context, listen: false).addToCart(product);
-  
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${product.name} added to cart! 🛒'),
@@ -156,7 +151,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
   Widget _buildHeaderBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,12 +158,12 @@ class HomePage extends StatelessWidget {
         Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(16), 
+              borderRadius: BorderRadius.circular(16),
               child: Image.asset(
-                'assets/logo.png', 
-                width: 65, 
+                'assets/logo.png',
+                width: 65,
                 height: 65,
-                fit: BoxFit.contain, 
+                fit: BoxFit.contain,
               ),
             ),
             const SizedBox(width: 12),
@@ -184,13 +178,16 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
-  
+
         // 👇 REPLACED THE SINGLE ICON WITH A ROW OF TWO ICONS
         Row(
           children: [
             // 1. Live Cart Icon
             GestureDetector(
-              onTap: () => MainLayout.changeTab(context, 2), // Changes bottom nav to Cart Tab
+              onTap: () => MainLayout.changeTab(
+                context,
+                2,
+              ), // Changes bottom nav to Cart Tab
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -210,7 +207,8 @@ class HomePage extends StatelessWidget {
                   // The Live Badge counter!
                   Consumer<CartProvider>(
                     builder: (context, cart, child) {
-                      if (cart.items.isEmpty) return const SizedBox.shrink(); // Hide if empty
+                      if (cart.items.isEmpty)
+                        return const SizedBox.shrink(); // Hide if empty
                       return Positioned(
                         right: 0, // Brought safely inside the boundary
                         top: 0,
@@ -244,7 +242,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            
+
             // 2. Existing Notification Icon
             Container(
               padding: const EdgeInsets.all(8),
@@ -270,9 +268,7 @@ class HomePage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+        borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
           colors: [primaryOrange, gradientOrangeEnd],
           begin: Alignment.topLeft,
@@ -282,10 +278,7 @@ class HomePage extends StatelessWidget {
           BoxShadow(
             color: primaryOrange.withOpacity(0.25),
             blurRadius: 20,
-            offset: const Offset(
-              0,
-              8,
-            ), 
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -337,7 +330,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-Widget _buildQuickActionGrid(BuildContext context) {
+  Widget _buildQuickActionGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -361,7 +354,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
           Icons.autorenew_rounded,
           const Color(0xFFEBF3FF),
           const Color(0xFF2563EB),
-          'subscription', 
+          'subscription',
         ),
 
         _buildActionCard(
@@ -394,12 +387,12 @@ Widget _buildQuickActionGrid(BuildContext context) {
     String route,
   ) {
     return Material(
-      color: bgColor, 
+      color: bgColor,
       borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.antiAlias, 
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         splashColor: iconColor.withOpacity(0.12),
-        highlightColor: iconColor.withOpacity(0.05), 
+        highlightColor: iconColor.withOpacity(0.05),
         onTap: () {
           if (route == 'subscription') {
             MainLayout.changeTab(context, 4);
@@ -414,10 +407,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal: 4,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
@@ -443,7 +433,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
     );
   }
 
- Widget _buildCategoryListGrid(BuildContext context) {
+  Widget _buildCategoryListGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -473,10 +463,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
             decoration: BoxDecoration(
               color: category.color,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF0F172A).withOpacity(0.04),
@@ -539,14 +526,19 @@ Widget _buildQuickActionGrid(BuildContext context) {
     BuildContext context,
   ) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('products').limit(4).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .limit(4)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('Something went wrong'));
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: primaryOrange));
+          return const Center(
+            child: CircularProgressIndicator(color: primaryOrange),
+          );
         }
 
         final docItems = snapshot.data?.docs ?? [];
@@ -568,7 +560,8 @@ Widget _buildQuickActionGrid(BuildContext context) {
             final double price = (data['price'] ?? 0.0).toDouble();
             final double rating = (data['rating'] ?? 5.0).toDouble();
             final int reviews = data['reviews'] ?? 0;
-            final String image = data['image'] ?? 'https://via.placeholder.com/150';
+            final String image =
+                data['image'] ?? 'https://via.placeholder.com/150';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 14),
@@ -622,14 +615,7 @@ Widget _buildQuickActionGrid(BuildContext context) {
                                 color: Color(0xFFFFB800),
                                 size: 14,
                               ),
-                            ),
-                            onPressed: () => _addToCart(context, product),
-                            child: const Text(
-                              'Add',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              const SizedBox(width: 4),
                               Text(
                                 ' ($reviews)',
                                 style: const TextStyle(
@@ -655,7 +641,16 @@ Widget _buildQuickActionGrid(BuildContext context) {
                                   ),
                                 ),
                                 onPressed: () {
-                                  print('Added to cart: $name');
+                                  final product = ProductItem(
+                                    id: id,
+                                    name: name,
+                                    price: price,
+                                    rating: rating,
+                                    reviews: reviews,
+                                    description: '',
+                                    image: image,
+                                  );
+                                  _addToCart(context, product);
                                 },
                                 child: const Text(
                                   'Add',
