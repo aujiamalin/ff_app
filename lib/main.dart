@@ -8,6 +8,7 @@ import 'profilepage.dart';
 import 'subscriptionpage.dart';
 import 'petcategorypage.dart';
 import 'about_us_page.dart';
+import 'pet_tips_page.dart';
 import 'location_page.dart';
 import 'cart_page.dart';
 import 'package:firebase_core/firebase_core.dart';

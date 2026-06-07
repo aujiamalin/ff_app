@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'cart_provider.dart';
+import 'subscriptionpage.dart';
 import 'main.dart';
 import 'about_us_page.dart';
+import 'pet_tips_page.dart';
 import 'product_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -114,7 +116,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -374,6 +375,15 @@ class HomePage extends StatelessWidget {
           const Color(0xFF9333EA), // Deep purple icon
           'about', // The route keyword we will listen for
         ),
+
+        _buildActionCard(
+          context,
+          'Pet Tips',
+          Icons.volunteer_activism_outlined,
+          const Color(0xFFECFDF5),
+          const Color(0xFF059669),
+          'pet_tips',
+        ),
       ],
     );
   }
@@ -395,12 +405,19 @@ class HomePage extends StatelessWidget {
         highlightColor: iconColor.withOpacity(0.05),
         onTap: () {
           if (route == 'subscription') {
-            MainLayout.changeTab(context, 4);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SubscriptionPage()),
+            );
           } else if (route == 'about') {
-            // 👇 ADDED THIS CONDITION TO OPEN YOUR PAGE
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AboutUsPage()),
+            );
+          } else if (route == 'pet_tips') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PetTipsPage()),
             );
           } else if (route.isNotEmpty) {
             _navigate(context, route);
@@ -522,7 +539,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildProductListView(BuildContext context) {
-      return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('products')
           .limit(4)
@@ -583,18 +600,18 @@ class HomePage extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: image.startsWith('data:image')
-                        ? Image.memory(
-                          base64Decode(image.split(',').last),
-                          width: 90,
-                          height: 90,
-                          fit: BoxFit.cover,
-                        )
-                        : Image.network(
-                          image,
-                          width: 90,
-                          height: 90,
-                          fit: BoxFit.cover,
-                        )
+                            ? Image.memory(
+                                base64Decode(image.split(',').last),
+                                width: 90,
+                                height: 90,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                image,
+                                width: 90,
+                                height: 90,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -729,7 +746,14 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              onPressed: () => _navigate(context, '/membership'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SubscriptionPage(),
+                  ),
+                );
+              },
               child: const Text(
                 'Become a Member',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),

@@ -17,7 +17,7 @@ class SubscriptionPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
           onPressed: () {
             // Patah balik ke tab Home (index 0) secara dalaman
-            MainLayout.changeTab(context, 0);
+            Navigator.pop(context);
           },
         ),
         title: const Text(
@@ -119,16 +119,18 @@ class SubscriptionPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: borderColor, width: 1.5),
           ),
-          padding: const EdgeInsets.only(top: 32, left: 20, right: 20, bottom: 20),
+          padding: const EdgeInsets.only(
+            top: 32,
+            left: 20,
+            right: 20,
+            bottom: 20,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Text(
-                    icon,
-                    style: const TextStyle(fontSize: 22),
-                  ),
+                  Text(icon, style: const TextStyle(fontSize: 22)),
                   const SizedBox(width: 10),
                   Text(
                     title,
@@ -208,10 +210,7 @@ class SubscriptionPage extends StatelessWidget {
                   onPressed: () {},
                   child: const Text(
                     'Subscribe Now',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
