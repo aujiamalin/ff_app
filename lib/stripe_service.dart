@@ -6,18 +6,21 @@ import 'package:http/http.dart' as http;
 class StripeService {
   // Replace with your actual local machine's IP if testing on Android Emulator
   // e.g., 'http://10.0.2.2:3000'
-  static const String _backendUrl = 'https://ff-app-1zzg.onrender.com'; 
+  static const String _backendUrl = 'https://ff-app-1zzg.onrender.com';
 
   static Future<void> makePayment(BuildContext context, String amount) async {
     try {
       // 1. Create Payment Intent on the Backend
-      final paymentIntent = await _createPaymentIntent(amount, 'MYR'); // Ringgit Malaysia
+      final paymentIntent = await _createPaymentIntent(
+        amount,
+        'MYR',
+      ); // Ringgit Malaysia
 
       if (paymentIntent == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error: Could not connect to payment server.'), 
-            backgroundColor: Colors.red
+            content: Text('Error: Could not connect to payment server.'),
+            backgroundColor: Colors.red,
           ),
         );
         return;
@@ -37,27 +40,32 @@ class StripeService {
 
       // Payment Success!
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment Successful! 🎉'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Payment Successful! 🎉'),
+          backgroundColor: Colors.green,
+        ),
       );
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment failed: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Payment failed: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   // --- Helper Functions ---
 
-  static Future<Map<String, dynamic>?> _createPaymentIntent(String amount, String currency) async {
+  static Future<Map<String, dynamic>?> _createPaymentIntent(
+    String amount,
+    String currency,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$_backendUrl/create-payment-intent'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'amount': amount, 
-          'currency': currency,
-        }),
+        body: jsonEncode({'amount': amount, 'currency': currency}),
       );
 
       if (response.statusCode == 200) {
