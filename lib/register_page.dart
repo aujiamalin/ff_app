@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'main.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -9,19 +11,34 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // Controller untuk ambil apa yang user taip
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
 
-  // Backend Function untuk Register ke Firebase
   Future signUp() async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      if (!mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('firstName', _firstNameController.text.trim());
+      await prefs.setString('lastName', _lastNameController.text.trim());
+      await prefs.setString('email', _emailController.text.trim());
+      await prefs.setString('phone', _phoneController.text.trim());
+      await prefs.setString('address', _addressController.text.trim());
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Akaun berjaya didaftarkan!')),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainLayout()),
+        (route) => false,
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(
@@ -34,7 +51,48 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
+  }
+
+  Widget buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? hint,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              filled: true,
+              fillColor: const Color(0xfff1f3f6),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: Icon(icon, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -136,33 +194,72 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 4. Input Password
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Password',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: '••••••••',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      filled: true,
-                      fillColor: const Color(0xfff1f3f6),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                   // 4. Input Password
+                   Align(
+                     alignment: Alignment.centerLeft,
+                     child: const Text(
+                       'Password',
+                       style: TextStyle(
+                         fontWeight: FontWeight.bold,
+                         fontSize: 15,
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 8),
+                   TextField(
+                     controller: _passwordController,
+                     obscureText: true,
+                     decoration: InputDecoration(
+                       hintText: '••••••••',
+                       hintStyle: TextStyle(color: Colors.grey[400]),
+                       filled: true,
+                       fillColor: const Color(0xfff1f3f6),
+                       border: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(12),
+                         borderSide: BorderSide.none,
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 20),
+
+                   const Text(
+                     'Personal Info',
+                     style: TextStyle(
+                       fontWeight: FontWeight.bold,
+                       fontSize: 16,
+                     ),
+                   ),
+                   const SizedBox(height: 12),
+
+                   buildTextField(
+                     controller: _firstNameController,
+                     label: 'First Name',
+                     icon: Icons.person,
+                     hint: 'John',
+                   ),
+                   const SizedBox(height: 16),
+                   buildTextField(
+                     controller: _lastNameController,
+                     label: 'Last Name',
+                     icon: Icons.person_outline,
+                     hint: 'Doe',
+                   ),
+                   const SizedBox(height: 16),
+                   buildTextField(
+                     controller: _phoneController,
+                     label: 'Phone Number',
+                     icon: Icons.phone,
+                     hint: '0123456789',
+                     keyboardType: TextInputType.phone,
+                   ),
+                   const SizedBox(height: 16),
+                   buildTextField(
+                     controller: _addressController,
+                     label: 'Address',
+                     icon: Icons.location_on,
+                     hint: 'Johor Bahru, Johor',
+                   ),
+                   const SizedBox(height: 32),
 
                   // 5. Butang Sign Up (Warna Orange Macam Gambar)
                   SizedBox(

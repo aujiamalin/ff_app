@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'main.dart';
 import 'homepage.dart';
 import 'editprofilepage.dart';
 import 'myorderspage.dart';
@@ -22,11 +22,11 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String firstName = "John";
-  String lastName = "Doe";
-  String email = "john.doe@example.com";
-  String phone = "0123456789";
-  String address = "Johor Bahru, Johor";
+  String firstName = "";
+  String lastName = "";
+  String email = "";
+  String phone = "";
+  String address = "";
 
   File? profileImage;
 
@@ -34,6 +34,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     loadProfile();
+    FirebaseAuth.instance.authStateChanges().listen((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> saveProfile() async {
@@ -51,11 +54,11 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      firstName = prefs.getString('firstName') ?? "John";
-      lastName = prefs.getString('lastName') ?? "Doe";
-      email = prefs.getString('email') ?? "john.doe@example.com";
-      phone = prefs.getString('phone') ?? "0123456789";
-      address = prefs.getString('address') ?? "Johor Bahru, Johor";
+      firstName = prefs.getString('firstName') ?? "";
+      lastName = prefs.getString('lastName') ?? "";
+      email = prefs.getString('email') ?? "";
+      phone = prefs.getString('phone') ?? "";
+      address = prefs.getString('address') ?? "";
       String? imagePath = prefs.getString('profileImage');
       if (imagePath != null && File(imagePath).existsSync()) {
         profileImage = File(imagePath);
@@ -120,7 +123,11 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.person_off_outlined, size: 80, color: Colors.grey),
+                const Icon(
+                  Icons.person_off_outlined,
+                  size: 80,
+                  color: Colors.grey,
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'You are not logged in',
@@ -144,17 +151,21 @@ class _ProfilePageState extends State<ProfilePage> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final result = await Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const LoginPage(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
                       );
+                      if (result == true) {
+                        setState(() {});
+                      }
                     },
                     child: const Text(
                       'Login / Sign Up',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -217,45 +228,58 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 15),
 
             Text(
-              "$firstName $lastName",
+              _requiredLabel(firstName),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 5),
 
-            const SizedBox(height: 5),
-            Text(email, style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 5),
-            Text(phone, style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 5),
-            Text(address, style: const TextStyle(color: Colors.grey)),
+            Builder(
+              builder: (context) {
+                final missingFields = <String>[];
+
+                if (email.isEmpty) missingFields.add('email');
+                if (phone.isEmpty) missingFields.add('phone number');
+                if (address.isEmpty) missingFields.add('address');
+
+                if (missingFields.isEmpty) {
+                  return Text(
+                    email,
+                    style: const TextStyle(color: Colors.grey),
+                  );
+                }
+
+                return ElevatedButton(
+                  onPressed: _openEditProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF9800),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Please complete your details (${missingFields.length} missing)',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                );
+              },
+            ),
 
             const SizedBox(height: 25),
 
             buildMenuTile(
               icon: Icons.edit,
               title: "Edit Profile",
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditProfilePage(
-                      firstName: firstName,
-                      lastName: lastName,
-                      email: email,
-                      phone: phone,
-                      address: address,
-                    ),
-                  ),
-                );
-                if (result != null) {
-                  updateProfile(
-                    result['firstName'],
-                    result['lastName'],
-                    result['email'],
-                    result['phone'],
-                    result['address'],
-                  );
-                }
-              },
+              onTap: _openEditProfile,
             ),
 
             buildMenuTile(
@@ -329,13 +353,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
-                              ),
-                              (route) => false,
-                            );
+                            Navigator.pop(context);
+                            FirebaseAuth.instance.signOut();
+                            MainLayout.changeTab(context, 0);
                           },
                           child: const Text("Logout"),
                         ),
@@ -358,6 +378,69 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  String _requiredLabel(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return 'Action required';
+    return trimmed;
+  }
+
+  Widget _actionChip(
+    String text, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF9800).withOpacity(0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFF9800).withOpacity(0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFFFF9800)),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFFF9800),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEditProfile() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfilePage(
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phone: phone,
+          address: address,
+        ),
+      ),
+    );
+    if (result != null) {
+      updateProfile(
+        result['firstName'],
+        result['lastName'],
+        result['email'],
+        result['phone'],
+        result['address'],
+      );
+    }
   }
 
   Widget buildMenuTile({
