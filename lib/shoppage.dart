@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'cart_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORT FIRESTORE
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import 'main.dart';
 import 'product_data.dart';
 
@@ -108,23 +109,41 @@ class _ShopPageState extends State<ShopPage> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          product.image,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 100,
-                              height: 100,
-                              color: const Color(0xFFF1F5F9),
-                              child: const Icon(
-                                Icons.image,
-                                color: Colors.grey,
+                        child: product.image.startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(product.image.split(',').last),
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 100,
+                                    height: 100,
+                                    color: const Color(0xFFF1F5F9),
+                                    child: const Icon(
+                                      Icons.image,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.network(
+                                product.image,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 100,
+                                    height: 100,
+                                    color: const Color(0xFFF1F5F9),
+                                    child: const Icon(
+                                      Icons.image,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
