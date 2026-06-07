@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import 'cart_provider.dart';
 import 'main.dart';
 import 'about_us_page.dart';
@@ -113,7 +114,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featuredProducts = allProducts.take(5).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -139,7 +139,7 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 28),
                 _buildFeaturedSubHeader(context),
                 const SizedBox(height: 14),
-                _buildProductListView(featuredProducts, context),
+                _buildProductListView(context),
                 const SizedBox(height: 24),
                 _buildCommunityBannerBox(context),
                 const SizedBox(height: 20),
@@ -521,11 +521,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProductListView(
-    List<ProductItem> dummyProducts,
-    BuildContext context,
-  ) {
-    return StreamBuilder<QuerySnapshot>(
+  Widget _buildProductListView(BuildContext context) {
+      return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('products')
           .limit(4)
@@ -585,12 +582,19 @@ class HomePage extends StatelessWidget {
                       onTap: () => _navigate(context, '/product/$id'),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
+                        child: image.startsWith('data:image')
+                        ? Image.memory(
+                          base64Decode(image.split(',').last),
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                        )
+                        : Image.network(
                           image,
                           width: 90,
                           height: 90,
                           fit: BoxFit.cover,
-                        ),
+                        )
                       ),
                     ),
                     const SizedBox(width: 16),
