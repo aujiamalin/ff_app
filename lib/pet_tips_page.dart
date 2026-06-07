@@ -10,7 +10,12 @@ class PetTipsPage extends StatefulWidget {
 
 class _PetTipsPageState extends State<PetTipsPage> {
   // 1. Data Mentah Kategori dan Video Tips Online
-  final List<String> categories = ['Cats 🐱', 'Hamsters 🐹', 'Rabbits 🐰', 'Birds 🦜'];
+  final List<String> categories = [
+    'Cats 🐱',
+    'Hamsters 🐹',
+    'Rabbits 🐰',
+    'Birds 🦜',
+  ];
   String selectedCategory = 'Cats 🐱';
 
   // Contoh data video (Gantikan URL YouTube ini dengan video pilihan awak nanti)
@@ -38,18 +43,23 @@ class _PetTipsPageState extends State<PetTipsPage> {
       'category': 'Rabbits 🐰',
       'duration': '6:45',
       'youtubeUrl': 'https://www.youtube.com/watch?v=Oa_766I65_M',
-    }
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     // Menapis video berdasarkan kategori yang dipilih oleh pengguna
-    final filteredVideos = videoData.where((video) => video['category'] == selectedCategory).toList();
+    final filteredVideos = videoData
+        .where((video) => video['category'] == selectedCategory)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xfff8f9fa),
       appBar: AppBar(
-        title: const Text('Pet Care Tips', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        title: const Text(
+          'Pet Care Tips',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -76,16 +86,25 @@ class _PetTipsPageState extends State<PetTipsPage> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected ? Colors.orange : Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: isSelected ? Colors.orange : Colors.grey.shade300),
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.orange
+                                : Colors.grey.shade300,
+                          ),
                         ),
                         child: Text(
                           categories[index],
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.blueGrey[700],
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.blueGrey[700],
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -101,7 +120,11 @@ class _PetTipsPageState extends State<PetTipsPage> {
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Text(
               'Recommended Videos',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
 
@@ -112,13 +135,20 @@ class _PetTipsPageState extends State<PetTipsPage> {
               itemBuilder: (context, index) {
                 final video = filteredVideos[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
                       ],
                     ),
                     child: Column(
@@ -129,10 +159,14 @@ class _PetTipsPageState extends State<PetTipsPage> {
                           alignment: Alignment.center,
                           children: [
                             ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
                               child: Image.network(
                                 YoutubePlayer.getThumbnail(
-                                  videoId: YoutubePlayer.convertUrlToId(video['youtubeUrl'])!,
+                                  videoId: YoutubePlayer.convertUrlToId(
+                                    video['youtubeUrl'],
+                                  )!,
                                 ),
                                 height: 180,
                                 width: double.infinity,
@@ -145,14 +179,20 @@ class _PetTipsPageState extends State<PetTipsPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VideoPlayerScreen(youtubeUrl: video['youtubeUrl']),
+                                    builder: (context) => VideoPlayerScreen(
+                                      youtubeUrl: video['youtubeUrl'],
+                                    ),
                                   ),
                                 );
                               },
                               child: const CircleAvatar(
                                 radius: 30,
                                 backgroundColor: Colors.orange,
-                                child: Icon(Icons.play_arrow, color: Colors.white, size: 35),
+                                child: Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 35,
+                                ),
                               ),
                             ),
                           ],
@@ -165,14 +205,24 @@ class _PetTipsPageState extends State<PetTipsPage> {
                             children: [
                               Text(
                                 video['title'],
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                                  const Icon(
+                                    Icons.access_time,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
                                   const SizedBox(width: 4),
-                                  Text(video['duration'], style: const TextStyle(color: Colors.grey)),
+                                  Text(
+                                    video['duration'],
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
                                 ],
                               ),
                             ],
@@ -194,7 +244,8 @@ class _PetTipsPageState extends State<PetTipsPage> {
 // --- SUB-WIDGET: SKRIN PEMAIN VIDEO YOUTUBE ---
 class VideoPlayerScreen extends StatefulWidget {
   final String youtubeUrl;
-  const VideoPlayerScreen({Key? key, packing, required this.youtubeUrl}) : super(key: key);
+  const VideoPlayerScreen({Key? key, required this.youtubeUrl})
+    : super(key: key);
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -205,14 +256,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void initState() {
-    super.initState() ;
+    super.initState();
     final videoId = YoutubePlayer.convertUrlToId(widget.youtubeUrl);
     _controller = YoutubePlayerController(
       initialVideoId: videoId!,
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
-        mute: false,
-      ),
+      flags: const YoutubePlayerFlags(autoPlay: true, mute: false),
     );
   }
 

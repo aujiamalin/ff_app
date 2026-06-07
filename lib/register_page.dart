@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : : super(key: key);
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -24,9 +24,9 @@ class _RegisterPageState extends State<RegisterPage> {
         const SnackBar(content: Text('Akaun berjaya didaftarkan!')),
       );
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Ralat berlaku')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Ralat berlaku')));
     }
   }
 
@@ -40,7 +40,9 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff5f5f5), // Warna background luar kelabu lembut
+      backgroundColor: const Color(
+        0xfff5f5f5,
+      ), // Warna background luar kelabu lembut
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -49,7 +51,9 @@ class _RegisterPageState extends State<RegisterPage> {
               // --- DESIGN KAD PUTIH (Macam dalam gambar image_0c82e6.png) ---
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(32), // Bucu melengkung comel
+                borderRadius: BorderRadius.circular(
+                  32,
+                ), // Bucu melengkung comel
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -58,7 +62,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 40.0,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -66,7 +73,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.pets, color: Colors.orange, size: 28), // Ikon ganti placeholder gambar
+                      const Icon(
+                        Icons.pets,
+                        color: Colors.orange,
+                        size: 28,
+                      ), // Ikon ganti placeholder gambar
                       const SizedBox(width: 8),
                       Text(
                         'Fluffy Friend',
@@ -92,10 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Sign up to start your journey',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.blueGrey[400],
-                    ),
+                    style: TextStyle(fontSize: 15, color: Colors.blueGrey[400]),
                   ),
                   const SizedBox(height: 32),
 
@@ -104,7 +112,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     alignment: Alignment.centerLeft,
                     child: const Text(
                       'Email',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -114,7 +125,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintText: 'you@example.com',
                       hintStyle: TextStyle(color: Colors.grey[400]),
                       filled: true,
-                      fillColor: const Color(0xfff1f3f6), // Warna kotak input kelabu cair
+                      fillColor: const Color(
+                        0xfff1f3f6,
+                      ), // Warna kotak input kelabu cair
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -128,7 +141,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     alignment: Alignment.centerLeft,
                     child: const Text(
                       'Password',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -155,7 +171,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: ElevatedButton(
                       onPressed: signUp,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange[400], // Warna oren terang
+                        backgroundColor:
+                            Colors.orange[400], // Warna oren terang
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -164,7 +181,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       child: const Text(
                         'Sign Up',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
