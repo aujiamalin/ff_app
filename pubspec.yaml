@@ -41,7 +41,7 @@ dependencies:
   firebase_core: ^4.10.0
   cloud_firestore: ^6.5.0
   image_picker: ^1.1.2
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.5
   firebase_auth: ^6.5.2
   youtube_player_flutter: ^10.0.1
   youtube_player_iframe: ^6.0.2

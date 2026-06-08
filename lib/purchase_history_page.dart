@@ -1,32 +1,50 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PurchaseHistoryPage extends StatelessWidget {
   const PurchaseHistoryPage({Key? key}) : super(key: key);
 
-  // Helper to handle both network and base64 images
   Widget _buildImage(String imageUrl) {
     if (imageUrl.startsWith('data:image')) {
       final base64Str = imageUrl.split(',').last;
-      return Image.memory(base64Decode(base64Str), width: 50, height: 50, fit: BoxFit.cover);
+      return Image.memory(
+        base64Decode(base64Str),
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+      );
     } else {
       return Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover);
     }
   }
 
+  double _safeDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Purchase History', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Purchase History',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
-      // StreamBuilder listens to the 'orders' collection in real-time
+
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('orders')
-            .orderBy('orderDate', descending: true) // Show newest orders first
+            .where('userId', isEqualTo: userId)
+            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -36,8 +54,8 @@ class PurchaseHistoryPage extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
               child: Text(
-                'No past purchases yet.', 
-                style: TextStyle(fontSize: 18, color: Colors.grey)
+                'No past purchases yet.',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
             );
           }
@@ -47,33 +65,45 @@ class PurchaseHistoryPage extends StatelessWidget {
           return ListView.builder(
             itemCount: orders.length,
             itemBuilder: (context, index) {
-              var orderData = orders[index].data() as Map<String, dynamic>;
-              
-              // Format the timestamp nicely
-              DateTime date = DateTime.parse(orderData['orderDate']).toLocal();
-              String formattedDate = '${date.day}/${date.month}/${date.year} at ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-              
-              List items = orderData['items'] ?? [];
+              final order = orders[index];
+              final data = order.data() as Map<String, dynamic>;
+
+              final double total = _safeDouble(data['totalAmount']);
+
+              final Timestamp? timestamp = data['createdAt'];
+              final DateTime date = timestamp != null
+                  ? timestamp.toDate()
+                  : DateTime.now();
+
+              final List items = data['items'] ?? [];
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 3,
                 child: ExpansionTile(
-                  leading: const Icon(Icons.receipt_long, color: Colors.orange, size: 32),
+                  leading: const Icon(Icons.receipt_long, color: Colors.orange),
+
                   title: Text(
-                    'Order: \$${orderData['totalAmount'].toStringAsFixed(2)}', 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    'Order RM ${total.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(formattedDate),
-                  children: items.map((item) {
+
+                  subtitle: Text(
+                    '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}',
+                  ),
+
+                  children: items.map<Widget>((item) {
+                    final map = item as Map<String, dynamic>;
+
                     return ListTile(
                       leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: _buildImage(item['image']),
+                        borderRadius: BorderRadius.circular(6),
+                        child: _buildImage(map['image'] ?? ''),
                       ),
-                      title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('Qty: ${item['quantity']}'),
-                      trailing: Text('\$${item['price']}'),
+                      title: Text(map['name'] ?? 'Unknown'),
+                      subtitle: Text('Qty: ${map['quantity'] ?? 1}'),
+                      trailing: Text(
+                        'RM ${_safeDouble(map['price']).toStringAsFixed(2)}',
+                      ),
                     );
                   }).toList(),
                 ),
