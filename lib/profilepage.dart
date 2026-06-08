@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'main.dart';
 import 'homepage.dart';
 import 'editprofilepage.dart';
-import 'myorderspage.dart';
+import 'purchase_history_page.dart';
 import 'mypetspage.dart';
 import 'subscriptionpage.dart';
 import 'shoppage.dart';
@@ -288,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MyOrdersPage()),
+                  MaterialPageRoute(builder: (_) => const PurchaseHistoryPage()),
                 );
               },
             ),

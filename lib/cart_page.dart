@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'cart_provider.dart';
-import 'stripe_service.dart';
-import 'purchase_history_page.dart';
+import 'checkout_options_page.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -121,39 +119,12 @@ class CartPage extends StatelessWidget {
                           ),
                         ),
                         onPressed: () async {
-                          int amountInCents = (cart.totalPrice * 100).toInt();
-                          
-                          // 1. Trigger Stripe and wait for the result
-                          bool isSuccess = await StripeService.makePayment(
+                          final result = await Navigator.push(
                             context,
-                            amountInCents.toString(),
+                            MaterialPageRoute(
+                              builder: (_) => const CheckoutOptionsPage(),
+                            ),
                           );
-
-                          // 2. If successful, save to Firebase and navigate
-                          if (isSuccess && context.mounted) {
-                            
-                            // Save to Firestore
-                            await FirebaseFirestore.instance.collection('orders').add({
-                              'totalAmount': cart.totalPrice,
-                              'orderDate': DateTime.now().toIso8601String(),
-                              'status': 'Paid',
-                              'items': cart.items.map((cartItem) => {
-                                'name': cartItem.product.name,
-                                'quantity': cartItem.quantity,
-                                'price': cartItem.product.price,
-                                'image': cartItem.product.image,
-                              }).toList(),
-                            });
-
-                            // Empty the cart
-                            cart.clearCart();
-
-                            // Navigate to History page
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PurchaseHistoryPage()),
-                            );
-                          }
                         },
                         child: const Text(
                           'Checkout',
