@@ -17,7 +17,6 @@ class CartProvider extends ChangeNotifier {
 
   // Add item to cart (or increase quantity if already in cart)
   void addToCart(ProductItem product) {
-    // Check if the item is already in the cart
     final existingIndex = _items.indexWhere((item) => item.product.id == product.id);
     
     if (existingIndex >= 0) {
@@ -25,7 +24,7 @@ class CartProvider extends ChangeNotifier {
     } else {
       _items.add(CartItem(product: product));
     }
-    notifyListeners(); // Tells the UI to update!
+    notifyListeners(); 
   }
 
   // Remove item completely
@@ -37,5 +36,11 @@ class CartProvider extends ChangeNotifier {
   // Calculate total price
   double get totalPrice {
     return _items.fold(0, (total, currentItem) => total + (currentItem.product.price * currentItem.quantity));
+  }
+
+  // Empty the cart after successful payment
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
   }
 }

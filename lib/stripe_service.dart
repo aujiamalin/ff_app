@@ -4,26 +4,27 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 
 class StripeService {
-  // Replace with your actual local machine's IP if testing on Android Emulator
-  // e.g., 'http://10.0.2.2:3000'
+  // Your live Render backend URL
   static const String _backendUrl = 'https://ff-app-1zzg.onrender.com';
 
-  static Future<void> makePayment(BuildContext context, String amount) async {
+  static Future<bool> makePayment(BuildContext context, String amount) async {
     try {
       // 1. Create Payment Intent on the Backend
       final paymentIntent = await _createPaymentIntent(
         amount,
-        'MYR',
-      ); // Ringgit Malaysia
+        'MYR', // Ringgit Malaysia
+      ); 
 
       if (paymentIntent == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: Could not connect to payment server.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error: Could not connect to payment server.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return false;
       }
 
       // 2. Initialize the Payment Sheet
@@ -31,7 +32,6 @@ class StripeService {
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentIntent['client_secret'],
           merchantDisplayName: 'Fluffy Friend Store',
-          // Optional: Add Google Pay / Apple Pay configuration here later
         ),
       );
 
@@ -39,19 +39,26 @@ class StripeService {
       await _displayPaymentSheet();
 
       // Payment Success!
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment Successful! 🎉'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment Successful! 🎉'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      return true;
+
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
     }
   }
 
@@ -74,7 +81,7 @@ class StripeService {
         throw Exception('Failed to create payment intent');
       }
     } catch (e) {
-      print('Error creating payment intent: $e');
+      debugPrint('Error creating payment intent: $e');
       return null;
     }
   }
@@ -83,7 +90,7 @@ class StripeService {
     try {
       await Stripe.instance.presentPaymentSheet();
     } on StripeException catch (e) {
-      print('Stripe Error: $e');
+      debugPrint('Stripe Error: $e');
       throw Exception('Payment cancelled or failed');
     }
   }
