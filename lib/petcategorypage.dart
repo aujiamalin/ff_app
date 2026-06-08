@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORT FIRESTORE
+import 'package:provider/provider.dart';
+import 'cart_provider.dart';
+import 'product_data.dart';
 import 'main.dart';
 import 'dart:convert';
 
@@ -11,6 +14,19 @@ class PetCategoryPage extends StatelessWidget {
     } else {
       return Image.network(image);
     }
+  }
+
+  void _addToCart(BuildContext context, ProductItem product) {
+    // Tells the provider to add the item
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart! 🛒'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   final String categoryName;
@@ -90,8 +106,10 @@ class PetCategoryPage extends StatelessWidget {
             itemCount: products.length,
             itemBuilder: (context, index) {
               // Tukar setiap dokumen kepada map data
-              final product = products[index].data() as Map<String, dynamic>;
+              final doc = products[index];
+              final product = doc.data() as Map<String, dynamic>;
 
+              final String id = doc.id;
               final String title = product['name'] ?? 'No Title';
               final double rating = (product['rating'] ?? 5.0).toDouble();
               final int reviews = product['reviews'] ?? 0;
@@ -213,7 +231,18 @@ class PetCategoryPage extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  final product = ProductItem(
+                                    id: id,
+                                    name: title,
+                                    price: price,
+                                    rating: rating,
+                                    reviews: reviews,
+                                    description: '',
+                                    image: imageUrl,
+                                  );
+                                  _addToCart(context, product);
+                                },
                                 child: const Text(
                                   'Add',
                                   style: TextStyle(
