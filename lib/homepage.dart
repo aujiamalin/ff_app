@@ -92,14 +92,25 @@ const List<CategoryItem> categories = [
   ),
 ];
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  // Cart action handler simulation
-  void _addToCart(BuildContext context, ProductItem product) {
-    // Tells the provider to add the item
-    Provider.of<CartProvider>(context, listen: false).addToCart(product);
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _addToCart(BuildContext context, ProductItem product) {
+    Provider.of<CartProvider>(context, listen: false).addToCart(product);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${product.name} added to cart! 🛒'),
@@ -109,7 +120,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Routing and navigation simulation
   void _navigate(BuildContext context, String route) {
     print('Navigating to: $route');
   }
@@ -132,18 +142,26 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildWelcomeGradientBox(),
                 const SizedBox(height: 24),
-                _buildQuickActionGrid(context),
-                const SizedBox(height: 24),
-                const Text('Shop by Pet', style: sectionTitleStyle),
-                const SizedBox(height: 14),
-                _buildCategoryListGrid(context),
-                const SizedBox(height: 28),
-                _buildFeaturedSubHeader(context),
-                const SizedBox(height: 14),
-                _buildProductListView(context),
-                const SizedBox(height: 24),
-                _buildCommunityBannerBox(context),
-                const SizedBox(height: 20),
+
+                _searchQuery.isNotEmpty
+                    ? _buildSearchResults()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildQuickActionGrid(context),
+                          const SizedBox(height: 24),
+                          const Text('Shop by Pet', style: sectionTitleStyle),
+                          const SizedBox(height: 14),
+                          _buildCategoryListGrid(context),
+                          const SizedBox(height: 28),
+                          _buildFeaturedSubHeader(context),
+                          const SizedBox(height: 14),
+                          _buildProductListView(context),
+                          const SizedBox(height: 24),
+                          _buildCommunityBannerBox(context),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
               ],
             ),
           ),
@@ -180,7 +198,7 @@ class HomePage extends StatelessWidget {
           ],
         ),
 
-        // 👇 REPLACED THE SINGLE ICON WITH A ROW OF TWO ICONS
+        //
         Row(
           children: [
             // 1. Live Cart Icon
@@ -313,6 +331,12 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
       ),
       child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Search for products...',
@@ -331,6 +355,173 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget _buildSearchResults() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
+
+        final filteredDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final name = (data['name'] ?? '').toString().toLowerCase();
+          return name.contains(_searchQuery.toLowerCase());
+        }).toList();
+
+        if (filteredDocs.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Text("No product found."),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: filteredDocs.length,
+          itemBuilder: (context, index) {
+            final doc = filteredDocs[index];
+            final data = doc.data() as Map<String, dynamic>;
+            final String name = data['name'] ?? 'No Name';
+            final double price = (data['price'] ?? 0.0).toDouble();
+            final String image =
+                data['image'] ?? 'https://via.placeholder.com/150';
+
+            final String category = data['category'] ?? 'Unknown';
+            final String description =
+                data['description'] ?? 'No description available';
+
+            return ListTile(
+              leading: Image.network(image, width: 50, height: 50),
+              title: Text(name),
+              subtitle: Text('\$$price'),
+
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+
+                      title: Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  image,
+                                  width: 140,
+                                  height: 140,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            Text(
+                              'Category: $category',
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Text(
+                              'RM ${price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: primaryOrange,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            Text(
+                              description,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      actionsAlignment: MainAxisAlignment.center,
+
+                      actions: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade300,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Close'),
+                        ),
+
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryOrange,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            final product = ProductItem(
+                              id: doc.id,
+                              name: name,
+                              price: price,
+                              rating: (data['rating'] ?? 0).toDouble(),
+                              reviews: (data['reviews'] ?? 0).toInt(),
+                              description: description,
+                              image: image,
+                            );
+
+                            _addToCart(context, product);
+
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Add to Cart'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildQuickActionGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
@@ -342,29 +533,11 @@ class HomePage extends StatelessWidget {
       children: [
         _buildActionCard(
           context,
-          'Bundles',
-          Icons.layers_outlined,
-          const Color(0xFFFFF4E6),
-          const Color(0xFFFF9800),
-          '',
-        ),
-
-        _buildActionCard(
-          context,
           'Subscribe',
           Icons.autorenew_rounded,
           const Color(0xFFEBF3FF),
           const Color(0xFF2563EB),
           'subscription',
-        ),
-
-        _buildActionCard(
-          context,
-          'Rewards',
-          Icons.card_giftcard_outlined,
-          const Color(0xFFFFFBEA),
-          const Color(0xFFD97706),
-          '',
         ),
 
         _buildActionCard(
@@ -545,28 +718,20 @@ class HomePage extends StatelessWidget {
           .limit(4)
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Center(child: Text('Something went wrong'));
-        }
-
+        if (snapshot.hasError) return const Center(child: Text('Error'));
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: primaryOrange),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
-        final docItems = snapshot.data?.docs ?? [];
-
-        if (docItems.isEmpty) {
-          return const Center(child: Text('No featured products available.'));
-        }
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) return const Text("No products found.");
 
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: docItems.length,
+          itemCount: docs.length,
           itemBuilder: (context, index) {
-            final doc = docItems[index];
+            final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
             final String id = doc.id;
@@ -576,6 +741,8 @@ class HomePage extends StatelessWidget {
             final int reviews = data['reviews'] ?? 0;
             final String image =
                 data['image'] ?? 'https://via.placeholder.com/150';
+            final String description =
+                data['description'] ?? 'No description available.';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 14),
@@ -637,6 +804,16 @@ class HomePage extends StatelessWidget {
                                 size: 14,
                               ),
                               const SizedBox(width: 4),
+
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: darkSlateText,
+                                ),
+                              ),
+
                               Text(
                                 ' ($reviews)',
                                 style: const TextStyle(
@@ -646,7 +823,22 @@ class HomePage extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            description,
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              height: 1.3,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

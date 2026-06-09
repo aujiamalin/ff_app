@@ -188,7 +188,7 @@ class _ShopPageState extends State<ShopPage> {
                             const SizedBox(height: 6),
                             Text(
                               product.description,
-                              maxLines: 2,
+                              maxLines: 5,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
@@ -196,6 +196,7 @@ class _ShopPageState extends State<ShopPage> {
                                 height: 1.4,
                               ),
                             ),
+                            const SizedBox(height: 10),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryOrange,

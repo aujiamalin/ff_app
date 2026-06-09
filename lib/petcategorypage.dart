@@ -10,9 +10,14 @@ class PetCategoryPage extends StatelessWidget {
   Widget buildProductImage(String image) {
     if (image.startsWith('data:image')) {
       final base64Str = image.split(',').last;
-      return Image.memory(base64Decode(base64Str));
+      return Image.memory(
+        base64Decode(base64Str),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
     } else {
-      return Image.network(image);
+      return Image.network(image, width: 100, height: 100, fit: BoxFit.cover);
     }
   }
 
@@ -136,20 +141,22 @@ class PetCategoryPage extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: imageUrl.isNotEmpty
-                          ? buildProductImage(imageUrl)
-                          : Container(
-                              width: 100,
-                              height: 100,
-                              color: const Color(0xFFF1F5F9),
-                              child: const Icon(
-                                Icons.pets,
-                                color: Color(0xFF94A3B8),
-                                size: 40,
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: imageUrl.isNotEmpty
+                            ? buildProductImage(imageUrl)
+                            : Container(
+                                color: const Color(0xFFF1F5F9),
+                                child: const Icon(
+                                  Icons.pets,
+                                  color: Color(0xFF94A3B8),
+                                  size: 40,
+                                ),
                               ),
-                            ),
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -194,7 +201,7 @@ class PetCategoryPage extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             description,
-                            maxLines: 2,
+                            maxLines: 5,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 12,
