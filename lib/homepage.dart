@@ -392,7 +392,19 @@ class _HomePageState extends State<HomePage> {
                 data['description'] ?? 'No description available';
 
             return ListTile(
-              leading: Image.network(image, width: 50, height: 50),
+              leading: image.startsWith('data:image')
+                  ? Image.memory(
+                      base64Decode(image.split(',').last),
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.network(
+                      image,
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                    ),
               title: Text(name),
               subtitle: Text('\$$price'),
 
